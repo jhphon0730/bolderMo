@@ -30,6 +30,7 @@ func (g *Game) handleServerMessage() {
 			switch msg.Type {
 			case model.SERVER_MESSAGE:
 				var clienttBodyData map[string]*model.Client
+
 				if err := json.Unmarshal(msg.Data, &clienttBodyData); err != nil {
 					log.Println(err)
 					return
@@ -37,6 +38,8 @@ func (g *Game) handleServerMessage() {
 				if clienttBodyData == nil {
 					return
 				}
+
+				log.Println(clienttBodyData[g.localID])
 
 				g.syncMutex.Lock()
 				for id, client := range clienttBodyData {
@@ -73,8 +76,8 @@ func (g *Game) handleServerMessage() {
 				charImg := ebiten.NewImageFromImage(charImage)
 				char := &Character{
 					id:    msg.Sender,
-					x:     WINDOW_WIDTH / 2,
-					y:     WINDOW_HEIGHT / 2,
+					x:     0,
+					y:     0,
 					image: charImg,
 				}
 				g.syncMutex.Lock()
@@ -95,8 +98,8 @@ func (g *Game) handleServerMessage() {
 				charImg := ebiten.NewImageFromImage(charImage)
 				char := &Character{
 					id:    dataStr,
-					x:     WINDOW_WIDTH / 2,
-					y:     WINDOW_HEIGHT / 2,
+					x:     0,
+					y:     0,
 					image: charImg,
 				}
 				g.syncMutex.Lock()
