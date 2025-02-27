@@ -28,6 +28,14 @@ func (g *Game) handleServerMessage() {
 		select {
 		case msg := <-g.msgChan:
 			switch msg.Type {
+			case model.ClientDisconnected:
+				removedClient := msg.Sender
+				for i, char := range g.characters {
+					if char.id == removedClient {
+						g.characters = append(g.characters[:i], g.characters[i+1:]...)
+						break
+					}
+				}
 			case model.MoveClient:
 				var move model.MoveContent
 				if err := json.Unmarshal(msg.Data, &move); err != nil {
