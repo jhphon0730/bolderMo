@@ -16,6 +16,7 @@ var (
 
 	// Message channel
 	messageChan = make(chan Message)
+	QuitChan = make(chan struct{})
 )
 
 func Init() {
@@ -34,7 +35,7 @@ func HandleClient(conn net.Conn) {
 	for {
 		var msg Message
 		if err := decoder.Decode(&msg); err != nil {
-			log.Printf("Connection from %v closed", client.ID)
+			log.Printf("Failed to read message: %v", err)
 			removeClient(client.ID)
 			return
 		}
@@ -49,15 +50,22 @@ func broadcastHandler() {
 			select {
 			case msg := <-messageChan:
 					switch msg.Type {
-					case "chat":
+					case NewChat:
 						handleChat(msg.Sender, msg)
-					case "join":
+					case ClientConnected:
 						handleJoin(msg.Sender, msg)
-					case "leave":
+					case ClientDisconnected:
 						handleLeave(msg.Sender, msg)
 					default:
-						log.Printf("Unknown message type: %s from %s", msg.Type, msg.Sender)
+						log.Printf("Unknown message type: %v from %s", msg.Type, msg.Sender)
 					}
+				case <-QuitChan:
+					log.Println("Broadcast handler stopped")
+					// 클라이언트들에게 종료 메시지 전송
+					for _, client := range clients {
+						client.Conn.Close()
+					}
+					return
 			}
 	}
 }

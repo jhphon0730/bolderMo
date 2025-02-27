@@ -20,7 +20,7 @@ func addClient(conn net.Conn) Client {
 	clientsMux.Unlock()
 
 	messageChan <- Message{
-		Type: "join",
+		Type: ClientConnected,
 		Sender: clientID,
 	}
 
@@ -33,7 +33,7 @@ func removeClient(clientID string) {
 	clientsMux.Unlock()
 
 	messageChan <- Message{
-		Type: "leave",
+		Type: ClientDisconnected,
 		Sender: clientID,
 	}
 }
