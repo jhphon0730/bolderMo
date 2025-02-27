@@ -55,27 +55,29 @@ func broadcastHandler() {
 	for {
 			select {
 			case msg := <-messageChan:
-					switch msg.Type {
-					case NewChat:
-						handleChat(msg.Sender, msg)
-					case ClientConnected:
-						handleJoin(msg.Sender, msg)
-					case ClientConnectedSuccess:
-						handleJoinSuccess(msg.Sender, msg)
-					case ClientDisconnected:
-						handleLeave(msg.Sender, msg)
-					case MoveClient:
-						handleMove(msg.Sender, msg)
-					default:
-						log.Printf("Unknown message type: %v from %s", msg.Type, msg.Sender)
-					}
-				case <-QuitChan:
-					log.Println("Broadcast handler stopped")
-					// 클라이언트들에게 종료 메시지 전송
-					for _, client := range clients {
-						client.Conn.Close()
-					}
-					return
+				handleClients()
+
+				switch msg.Type {
+				case NewChat:
+					handleChat(msg.Sender, msg)
+				case ClientConnected:
+					handleJoin(msg.Sender, msg)
+				case ClientConnectedSuccess:
+					handleJoinSuccess(msg.Sender, msg)
+				case ClientDisconnected:
+					handleLeave(msg.Sender, msg)
+				case MoveClient:
+					handleMove(msg.Sender, msg)
+				default:
+					log.Printf("Unknown message type: %v from %s", msg.Type, msg.Sender)
+				}
+			case <-QuitChan:
+				log.Println("Broadcast handler stopped")
+				// 클라이언트들에게 종료 메시지 전송
+				for _, client := range clients {
+					client.Conn.Close()
+				}
+				return
 			}
 	}
 }

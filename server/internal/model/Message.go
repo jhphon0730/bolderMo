@@ -8,12 +8,19 @@ const (
 	ClientDisconnected
 	NewChat
 	MoveClient
+	SERVER_MESSAGE
 )
 
 type Message struct {
 	Type   MessageType `json:"type"`   // "message", "join", "leave"
 	Sender string      `json:"sender"` // Client.ID
 	Data   interface{} `json:"data"`
+}
+
+type MoveMessage struct {
+	Type   MessageType `json:"type"`   // "message", "join", "leave"
+	Sender string      `json:"sender"` // Client.ID
+	Data   MoveContent `json:"data"`
 }
 
 type MoveContent struct {
