@@ -14,6 +14,8 @@ func addClient(conn net.Conn) Client {
 	client := &Client{
 		Conn: conn,
 		ID: clientID,
+		Dx: 0,
+		Dy: 0,
 	}
 	clientsMux.Lock()
 	clients[clientID] = *client
