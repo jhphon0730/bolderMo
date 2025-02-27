@@ -2,10 +2,10 @@ package game
 
 import (
 	"bolderMo-client/internal/background"
-	"image"
+	"bolderMo-client/internal/client"
 	_ "image/png"
 	"log"
-	"os"
+	"net"
 
 	"github.com/hajimehoshi/ebiten/v2"
 )
@@ -27,6 +27,8 @@ type Game struct {
 	background *ebiten.Image
 	characters []*Character
 	localID    string
+
+	conn net.Conn
 }
 
 func (g *Game) Update() error {
@@ -88,35 +90,34 @@ func (g *Game) UpdateFromServer(charID string, x, y float64) {
 }
 
 func NewGame() *Game {
+	// 1. Load background image
 	bgImage, err := background.LoadBackground()
 	if err != nil {
 		log.Fatal(err)
 	}
 	bg := ebiten.NewImageFromImage(bgImage)
 
-	file, err := os.Open("assets/char.png")
+	// 2. Load character image
+	charImage, err := background.LoadCharImage()
 	if err != nil {
-		log.Fatal("캐릭터 이미지 열기 실패:", err)
+		log.Fatal(err)
 	}
-	defer file.Close()
-
-	charImg, _, err := image.Decode(file)
-	if err != nil {
-		log.Fatal("캐릭터 이미지 디코딩 실패:", err)
-	}
-	charImage := ebiten.NewImageFromImage(charImg)
-
+	charImg := ebiten.NewImageFromImage(charImage)
 	char := &Character{
 		id:    "player1",
 		x:     WINDOW_WIDTH / 2,
 		y:     WINDOW_HEIGHT / 2,
-		image: charImage,
+		image: charImg,
 	}
+
+	// 3. Connect Server
+	conn := client.ConnectServerTCP()
 
 	return &Game{
 		background: bg,
 		characters: []*Character{char},
 		localID:    "player1",
+		conn:       conn,
 	}
 }
 
