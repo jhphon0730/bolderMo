@@ -22,14 +22,18 @@ func (g *Game) Update() error {
 }
 
 func (g *Game) Draw(screen *ebiten.Image) {
-	screen.DrawImage(g.background, nil)
+	w, h := screen.Size()
+	bgOpts := &ebiten.DrawImageOptions{}
+	bgOpts.GeoM.Scale(float64(w)/float64(g.background.Bounds().Dx()), float64(h)/float64(g.background.Bounds().Dy()))
+	screen.DrawImage(g.background, bgOpts)
 }
 
 func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeight int) {
-	return 320, 240
+	return outsideWidth, outsideHeight
 }
 
-func NewGame() Game {
+// NewGame은 Game 객체를 초기화하고 반환만 함
+func NewGame() *Game {
 	bg_image, err := background.LoadBackground()
 	if err != nil {
 		log.Fatal(err)
@@ -37,15 +41,20 @@ func NewGame() Game {
 
 	bg := ebiten.NewImageFromImage(bg_image)
 
-	gameEngine := &Game{
+	return &Game{
 		background: bg,
 	}
+}
 
+// Run은 창 설정과 게임 실행을 담당
+func (g *Game) Run() {
 	ebiten.SetWindowSize(WINDOW_WIDTH, WINDOW_HEIGHT)
+	ebiten.SetWindowResizable(true)
+	ebiten.SetWindowSizeLimits(640, 480, -1, -1)
+	ebiten.MaximizeWindow()
 	ebiten.SetWindowTitle("[MOA] 공식")
-	if err := ebiten.RunGame(gameEngine); err != nil {
+
+	if err := ebiten.RunGame(g); err != nil {
 		log.Fatal(err)
 	}
-
-	return *gameEngine
 }

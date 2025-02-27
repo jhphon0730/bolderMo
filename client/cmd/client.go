@@ -5,5 +5,6 @@ import (
 )
 
 func main() {
-	_ = game.NewGame()
+	game := game.NewGame()
+	game.Run()
 }
