@@ -10,6 +10,7 @@ const (
 	ClientDisconnected
 	NewChat
 	MoveClient
+	SERVER_MESSAGE
 )
 
 type Message struct {

@@ -9,8 +9,8 @@ import (
 func (g *Game) sendMoveRequest(direction string, dx, dy float64) error {
 	move := model.MoveContent{
 		Direction: direction,
-		Dx:        dx,
-		Dy:        dy,
+		Dx:        g.characters[g.localID].x + dx,
+		Dy:        g.characters[g.localID].y + dy,
 	}
 	move_byte, err := json.Marshal(move)
 	if err != nil {
