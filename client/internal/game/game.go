@@ -12,10 +12,10 @@ import (
 )
 
 const (
-	WINDOW_WIDTH  = 640
-	WINDOW_HEIGHT = 480
-	CHAR_WIDTH    = 64 // 캐릭터 크기 고정
-	CHAR_HEIGHT   = 64
+	WINDOW_WIDTH  = 840
+	WINDOW_HEIGHT = 680
+	CHAR_WIDTH    = 120 // 캐릭터 크기 고정
+	CHAR_HEIGHT   = 120
 	SERVER_ADDR   = "192.168.0.5:8080"
 )
 
@@ -102,9 +102,9 @@ func (g *Game) Run() {
 	go g.receiveMessage()
 
 	ebiten.SetWindowSize(WINDOW_WIDTH, WINDOW_HEIGHT)
-	ebiten.SetWindowResizable(true)
+	// ebiten.SetWindowResizable(true)
 	ebiten.SetWindowSizeLimits(640, 480, -1, -1)
-	ebiten.MaximizeWindow()
+	// ebiten.MaximizeWindow()
 	ebiten.SetWindowTitle("[MOA] 공식")
 
 	if err := ebiten.RunGame(g); err != nil {
