@@ -40,10 +40,6 @@ func (g *Game) MoveRequest(direction string, dx, dy float64) {
 	if err != nil {
 		return
 	}
-
-	g.characters[g.localID].x += dx
-	g.characters[g.localID].y += dy
-
 }
 
 // 다른 사용자의 움직임을 반영

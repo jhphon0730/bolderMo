@@ -28,6 +28,27 @@ func (g *Game) handleServerMessage() {
 		select {
 		case msg := <-g.msgChan:
 			switch msg.Type {
+			case model.SERVER_MESSAGE:
+				var clienttBodyData map[string]*model.Client
+				if err := json.Unmarshal(msg.Data, &clienttBodyData); err != nil {
+					log.Println(err)
+					return
+				}
+				if clienttBodyData == nil {
+					return
+				}
+
+				g.syncMutex.Lock()
+				for id, client := range clienttBodyData {
+					if g.characters[id] == nil {
+						continue
+					}
+
+					g.characters[id].x = client.Dx
+					g.characters[id].y = client.Dy
+
+				}
+				g.syncMutex.Unlock()
 			case model.ClientDisconnected:
 				removedClient := msg.Sender
 				for _, char := range g.characters {
@@ -41,7 +62,6 @@ func (g *Game) handleServerMessage() {
 			case model.MoveClient:
 				var move model.MoveContent
 				if err := json.Unmarshal(msg.Data, &move); err != nil {
-					log.Println(err)
 					return
 				}
 				g.MoveClients(msg, move)
