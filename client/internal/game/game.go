@@ -4,7 +4,6 @@ import (
 	"bolderMo-client/internal/background"
 	"bolderMo-client/internal/client"
 	"bolderMo-client/internal/model"
-	"encoding/json"
 	_ "image/png"
 	"log"
 	"net"
@@ -37,20 +36,16 @@ type Game struct {
 
 func (g *Game) Update() error {
 	if ebiten.IsKeyPressed(ebiten.KeyArrowLeft) {
-		g.sendMoveRequest("left", -2, 0)
-		g.UpdateFromServer(g.localID, g.characters[0].x-2, g.characters[0].y) // 시뮬레이션
+		g.MoveLeftRequest()
 	}
 	if ebiten.IsKeyPressed(ebiten.KeyArrowRight) {
-		g.sendMoveRequest("right", 2, 0)
-		g.UpdateFromServer(g.localID, g.characters[0].x+2, g.characters[0].y)
+		g.MoveRightRequest()
 	}
 	if ebiten.IsKeyPressed(ebiten.KeyArrowUp) {
-		g.sendMoveRequest("up", 0, -2)
-		g.UpdateFromServer(g.localID, g.characters[0].x, g.characters[0].y-2)
+		g.MoveUpRequest()
 	}
 	if ebiten.IsKeyPressed(ebiten.KeyArrowDown) {
-		g.sendMoveRequest("down", 0, 2)
-		g.UpdateFromServer(g.localID, g.characters[0].x, g.characters[0].y+2)
+		g.MoveDownRequest()
 	}
 
 	return nil
@@ -80,43 +75,6 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeigh
 	return outsideWidth, outsideHeight
 }
 
-func (g *Game) sendMoveRequest(direction string, dx, dy float64) {
-	log.Printf("Sending move request: ID=%s, Direction=%s, dx=%.2f, dy=%.2f", g.localID, direction, dx, dy)
-}
-
-func (g *Game) UpdateFromServer(charID string, x, y float64) {
-	for _, char := range g.characters {
-		if char.id == charID {
-			char.x = x
-			char.y = y
-			break
-		}
-	}
-}
-
-func (g *Game) receiveMessage() {
-	defer g.conn.Close()
-
-	decoder := json.NewDecoder(g.conn)
-	for {
-		var msg model.Message
-		if err := decoder.Decode(&msg); err != nil {
-			log.Printf("Failed to decode message: %v", err)
-			return
-		}
-		g.msgChan <- msg
-	}
-}
-
-func (g *Game) handleServerMessage() {
-	for {
-		select {
-		case msg := <-g.msgChan:
-			log.Println(msg)
-		}
-	}
-}
-
 func NewGame() *Game {
 	// 1. Load background image
 	bgImage, err := background.LoadBackground()
@@ -125,25 +83,12 @@ func NewGame() *Game {
 	}
 	bg := ebiten.NewImageFromImage(bgImage)
 
-	// 2. Load character image
-	charImage, err := background.LoadCharImage()
-	if err != nil {
-		log.Fatal(err)
-	}
-	charImg := ebiten.NewImageFromImage(charImage)
-	char := &Character{
-		id:    "player1",
-		x:     WINDOW_WIDTH / 2,
-		y:     WINDOW_HEIGHT / 2,
-		image: charImg,
-	}
-
-	// 3. Connect Server
+	// 2. Connect Server
 	conn := client.ConnectServerTCP(SERVER_ADDR)
 
 	game := &Game{
 		background: bg,
-		characters: []*Character{char},
+		characters: []*Character{},
 		localID:    "player1",
 		conn:       conn,
 		msgChan:    make(chan model.Message),
