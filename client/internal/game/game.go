@@ -3,6 +3,8 @@ package game
 import (
 	"bolderMo-client/internal/background"
 	"bolderMo-client/internal/client"
+	"bolderMo-client/internal/model"
+	"encoding/json"
 	_ "image/png"
 	"log"
 	"net"
@@ -15,6 +17,7 @@ const (
 	WINDOW_HEIGHT = 480
 	CHAR_WIDTH    = 64 // 캐릭터 크기 고정
 	CHAR_HEIGHT   = 64
+	SERVER_ADDR   = "192.168.0.5:8080"
 )
 
 type Character struct {
@@ -28,7 +31,8 @@ type Game struct {
 	characters []*Character
 	localID    string
 
-	conn net.Conn
+	conn    net.Conn
+	msgChan chan model.Message
 }
 
 func (g *Game) Update() error {
@@ -48,6 +52,7 @@ func (g *Game) Update() error {
 		g.sendMoveRequest("down", 0, 2)
 		g.UpdateFromServer(g.localID, g.characters[0].x, g.characters[0].y+2)
 	}
+
 	return nil
 }
 
@@ -89,6 +94,29 @@ func (g *Game) UpdateFromServer(charID string, x, y float64) {
 	}
 }
 
+func (g *Game) receiveMessage() {
+	defer g.conn.Close()
+
+	decoder := json.NewDecoder(g.conn)
+	for {
+		var msg model.Message
+		if err := decoder.Decode(&msg); err != nil {
+			log.Printf("Failed to decode message: %v", err)
+			return
+		}
+		g.msgChan <- msg
+	}
+}
+
+func (g *Game) handleServerMessage() {
+	for {
+		select {
+		case msg := <-g.msgChan:
+			log.Println(msg)
+		}
+	}
+}
+
 func NewGame() *Game {
 	// 1. Load background image
 	bgImage, err := background.LoadBackground()
@@ -111,17 +139,23 @@ func NewGame() *Game {
 	}
 
 	// 3. Connect Server
-	conn := client.ConnectServerTCP()
+	conn := client.ConnectServerTCP(SERVER_ADDR)
 
-	return &Game{
+	game := &Game{
 		background: bg,
 		characters: []*Character{char},
 		localID:    "player1",
 		conn:       conn,
+		msgChan:    make(chan model.Message),
 	}
+
+	return game
 }
 
 func (g *Game) Run() {
+	go g.handleServerMessage()
+	go g.receiveMessage()
+
 	ebiten.SetWindowSize(WINDOW_WIDTH, WINDOW_HEIGHT)
 	ebiten.SetWindowResizable(true)
 	ebiten.SetWindowSizeLimits(640, 480, -1, -1)

@@ -5,8 +5,8 @@ import (
 	"net"
 )
 
-func ConnectServerTCP() net.Conn {
-	conn, err := net.Dial("tcp", "192.168.0.5:8080")
+func ConnectServerTCP(serverAddr string) net.Conn {
+	conn, err := net.Dial("tcp", serverAddr)
 	if err != nil {
 		log.Fatal(err)
 	}
