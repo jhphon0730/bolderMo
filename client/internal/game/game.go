@@ -47,6 +47,7 @@ func (g *Game) Update() error {
 	if ebiten.IsKeyPressed(ebiten.KeyArrowDown) {
 		g.MoveRequest("down", 0, 2)
 	}
+	g.sendNowPosition()
 
 	return nil
 }

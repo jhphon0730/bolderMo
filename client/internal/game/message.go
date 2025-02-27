@@ -9,6 +9,42 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
+func (g *Game) sendNowPosition() {
+	for _, c := range g.characters {
+		if c.id == g.localID {
+			move := model.MoveContent{
+				Direction: "now",
+				Dx:        c.x,
+				Dy:        c.y,
+			}
+			move_byte, err := json.Marshal(move)
+			if err != nil {
+				log.Println(err)
+				return
+			}
+
+			msg := model.Message{
+				Type:   model.MoveClient,
+				Sender: g.localID,
+				Data:   move_byte,
+			}
+
+			msgByte, err := json.Marshal(msg)
+			if err != nil {
+				log.Println(err)
+				return
+			}
+
+			_, err = g.conn.Write(msgByte)
+			if err != nil {
+				log.Println(err)
+				return
+			}
+			break
+		}
+	}
+}
+
 func (g *Game) receiveMessage() {
 	defer g.conn.Close()
 
