@@ -35,35 +35,19 @@ func (g *Game) sendMoveRequest(direction string, dx, dy float64) error {
 	return nil
 }
 
-func (g *Game) UpdateFromServer(charID string, x, y float64) {
-	for _, char := range g.characters {
-		if char.id == charID {
-			char.x = x
-			char.y = y
-			break
-		}
-	}
-}
-
 func (g *Game) MoveRequest(direction string, dx, dy float64) {
 	err := g.sendMoveRequest(direction, dx, dy)
 	if err != nil {
 		return
 	}
 
-	for _, c := range g.characters {
-		if c.id == g.localID {
-			g.UpdateFromServer(g.localID, c.x+dx, c.y+dy)
-			break
-		}
-	}
+	g.characters[g.localID].x += dx
+	g.characters[g.localID].y += dy
+
 }
 
+// 다른 사용자의 움직임을 반영
 func (g *Game) MoveClients(msg model.Message, move model.MoveContent) {
-	for _, c := range g.characters {
-		if c.id == msg.Sender {
-			g.UpdateFromServer(msg.Sender, c.x+move.Dx, c.y+move.Dy)
-			break
-		}
-	}
+	g.characters[msg.Sender].x += move.Dx
+	g.characters[msg.Sender].y += move.Dy
 }

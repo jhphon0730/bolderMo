@@ -30,9 +30,11 @@ func (g *Game) handleServerMessage() {
 			switch msg.Type {
 			case model.ClientDisconnected:
 				removedClient := msg.Sender
-				for i, char := range g.characters {
+				for _, char := range g.characters {
 					if char.id == removedClient {
-						g.characters = append(g.characters[:i], g.characters[i+1:]...)
+						g.syncMutex.Lock()
+						delete(g.characters, removedClient)
+						g.syncMutex.Unlock()
 						break
 					}
 				}
@@ -55,7 +57,9 @@ func (g *Game) handleServerMessage() {
 					y:     WINDOW_HEIGHT / 2,
 					image: charImg,
 				}
-				g.characters = append(g.characters, char)
+				g.syncMutex.Lock()
+				g.characters[msg.Sender] = char
+				g.syncMutex.Unlock()
 			case model.ClientConnectedSuccess:
 				var dataStr string
 				if err := json.Unmarshal(msg.Data, &dataStr); err != nil {
@@ -75,7 +79,9 @@ func (g *Game) handleServerMessage() {
 					y:     WINDOW_HEIGHT / 2,
 					image: charImg,
 				}
-				g.characters = append(g.characters, char)
+				g.syncMutex.Lock()
+				g.characters[msg.Sender] = char
+				g.syncMutex.Unlock()
 			}
 		}
 	}

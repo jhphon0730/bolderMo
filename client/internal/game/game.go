@@ -7,6 +7,7 @@ import (
 	_ "image/png"
 	"log"
 	"net"
+	"sync"
 
 	"github.com/hajimehoshi/ebiten/v2"
 )
@@ -27,11 +28,12 @@ type Character struct {
 
 type Game struct {
 	background *ebiten.Image
-	characters []*Character
+	characters map[string]*Character
 	localID    string
 
-	conn    net.Conn
-	msgChan chan model.Message
+	syncMutex sync.Mutex
+	conn      net.Conn
+	msgChan   chan model.Message
 }
 
 func (g *Game) Update() error {
@@ -88,7 +90,7 @@ func NewGame() *Game {
 
 	game := &Game{
 		background: bg,
-		characters: []*Character{},
+		characters: make(map[string]*Character),
 		localID:    "player1",
 		conn:       conn,
 		msgChan:    make(chan model.Message),
