@@ -48,6 +48,10 @@ func (g *Game) MoveRequest(direction string, dx, dy float64) {
 
 // 다른 사용자의 움직임을 반영
 func (g *Game) MoveClients(msg model.Message, move model.MoveContent) {
+	if g.characters[msg.Sender] == nil {
+		return
+	}
+
 	g.characters[msg.Sender].x += move.Dx
 	g.characters[msg.Sender].y += move.Dy
 }
