@@ -7,15 +7,22 @@ import (
 )
 
 func (g *Game) sendMoveRequest(direction string, dx, dy float64) error {
+	move := model.MoveContent{
+		Direction: direction,
+		Dx:        dx,
+		Dy:        dy,
+	}
+	move_byte, err := json.Marshal(move)
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+
 	// g.conn을 통해 서버로 메시비 보내기
 	msg := model.Message{
 		Type:   model.MoveClient,
 		Sender: g.localID,
-		Data: model.MoveContent{
-			Direction: direction,
-			Dx:        dx,
-			Dy:        dy,
-		},
+		Data:   move_byte,
 	}
 
 	msgByte, err := json.Marshal(msg)
@@ -38,34 +45,25 @@ func (g *Game) UpdateFromServer(charID string, x, y float64) {
 	}
 }
 
-func (g *Game) MoveLeftRequest() {
-	err := g.sendMoveRequest("left", -2, 0)
+func (g *Game) MoveRequest(direction string, dx, dy float64) {
+	err := g.sendMoveRequest(direction, dx, dy)
 	if err != nil {
 		return
 	}
-	g.UpdateFromServer(g.localID, g.characters[0].x-2, g.characters[0].y) // 시뮬레이션
+
+	for _, c := range g.characters {
+		if c.id == g.localID {
+			g.UpdateFromServer(g.localID, c.x+dx, c.y+dy)
+			break
+		}
+	}
 }
 
-func (g *Game) MoveRightRequest() {
-	err := g.sendMoveRequest("right", 2, 0)
-	if err != nil {
-		return
+func (g *Game) MoveClients(msg model.Message, move model.MoveContent) {
+	for _, c := range g.characters {
+		if c.id == msg.Sender {
+			g.UpdateFromServer(msg.Sender, c.x+move.Dx, c.y+move.Dy)
+			break
+		}
 	}
-	g.UpdateFromServer(g.localID, g.characters[0].x+2, g.characters[0].y)
-}
-
-func (g *Game) MoveUpRequest() {
-	err := g.sendMoveRequest("up", 0, -2)
-	if err != nil {
-		return
-	}
-	g.UpdateFromServer(g.localID, g.characters[0].x, g.characters[0].y-2)
-}
-
-func (g *Game) MoveDownRequest() {
-	err := g.sendMoveRequest("down", 0, 2)
-	if err != nil {
-		return
-	}
-	g.UpdateFromServer(g.localID, g.characters[0].x, g.characters[0].y+2)
 }

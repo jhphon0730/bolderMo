@@ -36,16 +36,16 @@ type Game struct {
 
 func (g *Game) Update() error {
 	if ebiten.IsKeyPressed(ebiten.KeyArrowLeft) {
-		g.MoveLeftRequest()
+		g.MoveRequest("left", -2, 0)
 	}
 	if ebiten.IsKeyPressed(ebiten.KeyArrowRight) {
-		g.MoveRightRequest()
+		g.MoveRequest("right", 2, 0)
 	}
 	if ebiten.IsKeyPressed(ebiten.KeyArrowUp) {
-		g.MoveUpRequest()
+		g.MoveRequest("up", 0, -2)
 	}
 	if ebiten.IsKeyPressed(ebiten.KeyArrowDown) {
-		g.MoveDownRequest()
+		g.MoveRequest("down", 0, 2)
 	}
 
 	return nil
