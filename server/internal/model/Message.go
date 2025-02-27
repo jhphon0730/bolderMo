@@ -4,8 +4,10 @@ type MessageType int
 
 const (
 	ClientConnected MessageType = iota
+	ClientConnectedSuccess
 	ClientDisconnected
 	NewChat
+	MoveClient
 )
 
 type Message struct {

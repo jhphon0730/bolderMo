@@ -68,3 +68,39 @@ func handleLeave(clientID string, msg Message) {
 		handleSend(client, msg)
 	}
 }
+
+func handleMove(clientID string, msg Message) {
+	log.Printf("Client %v moved", clientID)
+
+	clientsMux.Lock()
+	clientList := make(map[string]Client, len(clients))
+	for id, c := range clients {
+			clientList[id] = c
+	}
+	clientsMux.Unlock()
+
+	for _, client := range clientList {
+		if client.ID == clientID {
+			continue
+		}
+		handleSend(client, msg)
+	}
+}
+
+func handleJoinSuccess(clientID string, msg Message) {
+	log.Printf("Client %v joined successfully", clientID)
+
+	clientsMux.Lock()
+	clientList := make(map[string]Client, len(clients))
+	for id, c := range clients {
+			clientList[id] = c
+	}
+	clientsMux.Unlock()
+
+	for _, client := range clientList {
+		if client.ID != clientID {
+			continue
+		}
+		handleSend(client, msg)
+	}
+}

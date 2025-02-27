@@ -32,6 +32,12 @@ func HandleClient(conn net.Conn) {
 	reader := bufio.NewReader(conn)
 	decoder := json.NewDecoder(reader)
 
+	messageChan <- Message{
+		Type: ClientConnectedSuccess,
+		Sender: client.ID,
+		Data: client.ID,
+	}
+
 	for {
 		var msg Message
 		if err := decoder.Decode(&msg); err != nil {
@@ -54,8 +60,12 @@ func broadcastHandler() {
 						handleChat(msg.Sender, msg)
 					case ClientConnected:
 						handleJoin(msg.Sender, msg)
+					case ClientConnectedSuccess:
+						handleJoinSuccess(msg.Sender, msg)
 					case ClientDisconnected:
 						handleLeave(msg.Sender, msg)
+					case MoveClient:
+						handleMove(msg.Sender, msg)
 					default:
 						log.Printf("Unknown message type: %v from %s", msg.Type, msg.Sender)
 					}
